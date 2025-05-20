@@ -1,6 +1,6 @@
+mod installed_mods;
 mod mod_search;
 use crate::enum_select;
-
 pub use mod_search::SearchablePackage;
 
 enum_select! {
@@ -23,7 +23,9 @@ pub async fn view(
             inquire::Select::new("Main Menu", MainMenuSelection::VARIANTS.to_vec()).prompt()?;
 
         match selected {
-            ViewInstalledMods => {}
+            ViewInstalledMods => {
+                installed_mods::view(&mut program_args, &api).await?;
+            }
             ModSearch => {
                 mod_search::view(&api, &mut program_args).await?;
             }

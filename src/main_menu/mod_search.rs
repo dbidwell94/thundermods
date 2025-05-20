@@ -86,7 +86,5 @@ pub async fn view(
         }
     }
 
-    clearscreen::clear()?;
-
     Ok(())
 }

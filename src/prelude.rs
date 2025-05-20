@@ -1,3 +1,6 @@
+use serde::Deserialize;
+use thunderstore::VersionIdent;
+
 /// Allows for quick creation of an enum with
 /// a pre-defined `std::fmt::Display` impl, as well
 /// as a `T::VARIANTS` field impl which contains all the
@@ -50,4 +53,13 @@ macro_rules! enum_select {
             }
         }
     };
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ModManifest {
+    pub name: String,
+    #[serde(rename = "version_number")]
+    pub version: semver::Version,
+    pub description: String,
+    pub dependencies: Vec<VersionIdent>,
 }
