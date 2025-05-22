@@ -5,8 +5,6 @@ pub(crate) mod prelude;
 use clap::Parser;
 use std::path::PathBuf;
 
-const COMMUNITY_NAME: &str = "valheim";
-
 /// Global state for this program's session
 pub struct ProgramState {
     /// The program args this session was started with
@@ -21,6 +19,8 @@ struct ProgramArgs {
     // The directory where your mods should be deployed
     #[arg(short = 'd', long, env)]
     mods_dir: PathBuf,
+    #[arg(short, long, env)]
+    managed_game: String,
 }
 
 #[tokio::main]

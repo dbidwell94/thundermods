@@ -1,9 +1,11 @@
 mod installed_mods;
 mod mod_search;
 use crate::enum_select;
+use crate::prelude::*;
 pub use mod_search::SearchablePackage;
 
 enum_select! {
+    /// Menu menu selections
     #[derive(Clone, Copy)]
     enum MainMenuSelection {
         ViewInstalledMods = "View Installed Mods",

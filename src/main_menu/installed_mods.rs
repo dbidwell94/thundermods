@@ -1,4 +1,3 @@
-use crate::enum_select;
 use crate::prelude::*;
 use std::{collections::VecDeque, path::PathBuf};
 
@@ -13,7 +12,8 @@ pub async fn view(
     api: &thunderstore::Client,
 ) -> anyhow::Result<()> {
     if program_state.packages.is_empty() {
-        api.list_packages_v1(crate::COMMUNITY_NAME).await?;
+        api.list_packages_v1(&program_state.args.managed_game)
+            .await?;
     }
 
     clearscreen::clear()?;

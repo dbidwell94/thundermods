@@ -1,6 +1,13 @@
 use serde::Deserialize;
 use thunderstore::VersionIdent;
 
+pub trait EnumSelectable
+where
+    Self: std::marker::Sized + 'static,
+{
+    const VARIANTS: &'static [Self];
+}
+
 /// Allows for quick creation of an enum with
 /// a pre-defined `std::fmt::Display` impl, as well
 /// as a `T::VARIANTS` field impl which contains all the
@@ -24,23 +31,23 @@ use thunderstore::VersionIdent;
 #[macro_export]
 macro_rules! enum_select {
     (
+    $(#[doc = $documentation:expr])?
     $(#[derive($($derive_target:ident),*)])?
     $vis:vis enum $enum_name:ident {
     $(
         $variant:ident = $display:expr,
     )*
     }) => {
+        $(#[doc = $documentation])?
         $(#[derive($($derive_target),*)])?
         $vis enum $enum_name {
             $($variant),*
         }
 
-        impl $enum_name {
-            /// All of the variants for this enum neatly packed into a `const &'static []`
-            const VARIANTS: &'static [$enum_name] = &[
-                $($enum_name::$variant),*
-            ];
+        impl $crate::prelude::EnumSelectable for $enum_name {
+            const VARIANTS: &'static [$enum_name] = &[$($enum_name::$variant),*];
         }
+
 
         impl std::fmt::Display for $enum_name {
             fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::result::Result<(), std::fmt::Error> {

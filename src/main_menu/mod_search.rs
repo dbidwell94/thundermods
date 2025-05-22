@@ -47,7 +47,7 @@ pub async fn view(
         clearscreen::clear()?;
         println!("Please wait, fetching downloadable packages from Thunderstore...");
         let mut packages: Vec<SearchablePackage> = api
-            .list_packages_v1(crate::COMMUNITY_NAME)
+            .list_packages_v1(&state.args.managed_game)
             .await?
             .into_iter()
             .filter(|f| !f.is_deprecated && !f.is_modpack())
