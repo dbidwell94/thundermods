@@ -19,7 +19,7 @@ struct ProgramArgs {
     // The directory where your mods should be deployed
     #[arg(short = 'd', long, env)]
     mods_dir: PathBuf,
-    #[arg(short, long, env)]
+    #[arg(short = 'g', long, env)]
     managed_game: String,
 }
 
