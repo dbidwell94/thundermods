@@ -29,8 +29,7 @@ pub fn view(to_view: &super::SearchablePackage) -> anyhow::Result<ModDetailsResu
         println!("  --------------------");
     }
 
-    let return_result =
-        inquire::Select::new("Options", ModDetailsResult::VARIANTS.to_vec()).prompt()?;
+    let return_result = ModDetailsResult::selectable("Options").prompt()?;
 
     Ok(return_result)
 }

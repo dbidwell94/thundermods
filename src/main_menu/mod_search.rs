@@ -40,8 +40,8 @@ impl From<PackageV1> for SearchablePackage {
 }
 
 pub async fn view(
-    api: &thunderstore::Client,
     state: &mut crate::ProgramState,
+    api: &thunderstore::Client,
 ) -> anyhow::Result<()> {
     if state.packages.is_empty() {
         clearscreen::clear()?;

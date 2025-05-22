@@ -21,14 +21,12 @@ pub async fn view(
     loop {
         clearscreen::clear()?;
 
-        let selected = MainMenuSelection::selectable("Main Menu").prompt()?;
-
-        match selected {
+        match MainMenuSelection::selectable("Main Menu").prompt()? {
             ViewInstalledMods => {
                 installed_mods::view(&mut program_args, &api).await?;
             }
             ModSearch => {
-                mod_search::view(&api, &mut program_args).await?;
+                mod_search::view(&mut program_args, &api).await?;
             }
             Quit => {
                 break;

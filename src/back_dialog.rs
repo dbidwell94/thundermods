@@ -1,6 +1,7 @@
 use crate::prelude::*;
 
 enum_select! {
+    /// The options for the back menu
     #[derive(Clone)]
     enum BackOptions {
         PreviousPage = "Previous Page",
@@ -14,9 +15,7 @@ pub fn view() -> anyhow::Result<bool> {
     use BackOptions::*;
     clearscreen::clear()?;
     Ok(
-        match inquire::Select::new("What would you like to do?", BackOptions::VARIANTS.to_vec())
-            .prompt()?
-        {
+        match BackOptions::selectable("What would you like to do?").prompt()? {
             PreviousPage => false,
             Continue => true,
         },
