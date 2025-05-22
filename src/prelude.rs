@@ -1,9 +1,16 @@
-use std::ops::Deref;
-
+use directories::ProjectDirs;
 use inquire::Select;
 use pad::PadStr;
 use serde::Deserialize;
+use std::{ops::Deref, path::PathBuf, sync::LazyLock};
 use thunderstore::{VersionIdent, models::PackageV1};
+
+pub static CACHE_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
+    ProjectDirs::from("com", "biddydev", env!("CARGO_BIN_NAME"))
+        .unwrap()
+        .cache_dir()
+        .to_path_buf()
+});
 
 pub trait EnumSelectable
 where

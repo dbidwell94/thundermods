@@ -9,24 +9,39 @@ enum_select! {
     enum MainMenuSelection {
         ViewInstalledMods = "View Installed Mods",
         ModSearch = "Mod Search",
+        UpdateCache = "Update Thunderstore Mod Cache",
         Quit = "Quit",
     }
 }
 pub async fn view(
-    api: thunderstore::Client,
-    mut program_args: super::ProgramState,
+    api: &thunderstore::Client,
+    program_args: &mut super::ProgramState,
 ) -> anyhow::Result<()> {
     use MainMenuSelection::*;
 
     loop {
         clearscreen::clear()?;
 
-        match MainMenuSelection::selectable("Main Menu").prompt()? {
+        match MainMenuSelection::selectable("Main Menu")
+            .with_help_message(&format!(
+                "Last cache update: {}",
+                program_args
+                    .last_updated
+                    .map(|dt| dt.format("%Y-%m-%d %H:%M:%S").to_string())
+                    .unwrap_or("N/A".into())
+            ))
+            .prompt()?
+        {
             ViewInstalledMods => {
-                installed_mods::view(&mut program_args, &api).await?;
+                installed_mods::view(program_args, api).await?;
             }
             ModSearch => {
-                mod_search::view(&mut program_args, &api).await?;
+                mod_search::view(program_args, api).await?;
+            }
+            UpdateCache => {
+                clearscreen::clear()?;
+                println!("Refreshing packages...");
+                program_args.refresh_packages(api).await?;
             }
             Quit => {
                 break;
