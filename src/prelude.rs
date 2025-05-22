@@ -1,3 +1,4 @@
+use inquire::Select;
 use serde::Deserialize;
 use thunderstore::VersionIdent;
 
@@ -5,7 +6,11 @@ pub trait EnumSelectable
 where
     Self: std::marker::Sized + 'static,
 {
+    /// All the variants of this enum packaged in a static array slice
     const VARIANTS: &'static [Self];
+
+    /// Creates an `inquire::Select` struct from the variants of this enum
+    fn selectable(message: &str) -> Select<Self>;
 }
 
 /// Allows for quick creation of an enum with
@@ -28,7 +33,6 @@ where
 ///     MyEnum::VARIANTS.to_vec()
 /// }
 /// ```
-#[macro_export]
 macro_rules! enum_select {
     (
     $(#[doc = $documentation:expr])?
@@ -46,6 +50,11 @@ macro_rules! enum_select {
 
         impl $crate::prelude::EnumSelectable for $enum_name {
             const VARIANTS: &'static [$enum_name] = &[$($enum_name::$variant),*];
+
+            fn selectable(message: &str) -> inquire::Select<Self> {
+                inquire::Select::new(message, Self::VARIANTS.to_vec())
+            }
+
         }
 
 
@@ -61,6 +70,8 @@ macro_rules! enum_select {
         }
     };
 }
+
+pub(crate) use enum_select;
 
 #[derive(Deserialize, Debug)]
 pub struct ModManifest {

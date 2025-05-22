@@ -1,6 +1,5 @@
 mod installed_mods;
 mod mod_search;
-use crate::enum_select;
 use crate::prelude::*;
 pub use mod_search::SearchablePackage;
 
@@ -21,8 +20,8 @@ pub async fn view(
 
     loop {
         clearscreen::clear()?;
-        let selected =
-            inquire::Select::new("Main Menu", MainMenuSelection::VARIANTS.to_vec()).prompt()?;
+
+        let selected = MainMenuSelection::selectable("Main Menu").prompt()?;
 
         match selected {
             ViewInstalledMods => {

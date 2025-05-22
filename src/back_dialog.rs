@@ -1,4 +1,3 @@
-use crate::enum_select;
 use crate::prelude::*;
 
 enum_select! {

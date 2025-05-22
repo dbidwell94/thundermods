@@ -1,6 +1,6 @@
 mod back_dialog;
 mod main_menu;
-pub(crate) mod prelude;
+pub mod prelude;
 
 use clap::Parser;
 use std::path::PathBuf;

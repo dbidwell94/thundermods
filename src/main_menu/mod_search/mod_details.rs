@@ -1,8 +1,6 @@
 use crate::prelude::*;
 use thunderstore::VersionIdent;
 
-use crate::enum_select;
-
 enum_select! {
     #[derive(Clone)]
     pub enum ModDetailsResult {
