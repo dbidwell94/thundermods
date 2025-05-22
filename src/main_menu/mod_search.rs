@@ -1,43 +1,7 @@
 mod mod_details;
 mod mod_install;
 
-use pad::PadStr;
-use thunderstore::models::PackageV1;
-
-#[derive(Clone)]
-pub struct SearchablePackage(PackageV1);
-
-impl SearchablePackage {
-    pub fn is_server_mod(&self) -> bool {
-        self.0.categories.contains("Server-side")
-    }
-}
-
-impl std::fmt::Display for SearchablePackage {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut name = self.0.name.clone();
-        name.truncate(16);
-        write!(
-            f,
-            "|{}|{}|{}|",
-            name.pad_to_width_with_alignment(18, pad::Alignment::Middle),
-            self.0
-                .total_downloads()
-                .to_string()
-                .pad_to_width_with_alignment(17, pad::Alignment::Middle),
-            self.0
-                .rating_score
-                .to_string()
-                .pad_to_width_with_alignment(14, pad::Alignment::Middle)
-        )
-    }
-}
-
-impl From<PackageV1> for SearchablePackage {
-    fn from(value: PackageV1) -> Self {
-        Self(value)
-    }
-}
+use crate::prelude::*;
 
 pub async fn view(
     state: &mut crate::ProgramState,
@@ -55,8 +19,7 @@ pub async fn view(
             .filter(|searchable: &SearchablePackage| searchable.is_server_mod())
             .collect();
 
-        packages
-            .sort_by(|current, next| next.0.total_downloads().cmp(&current.0.total_downloads()));
+        packages.sort_by_key(|item| item.total_downloads());
 
         state.packages = packages;
     }

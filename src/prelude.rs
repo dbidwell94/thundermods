@@ -1,6 +1,9 @@
+use std::ops::Deref;
+
 use inquire::Select;
+use pad::PadStr;
 use serde::Deserialize;
-use thunderstore::VersionIdent;
+use thunderstore::{VersionIdent, models::PackageV1};
 
 pub trait EnumSelectable
 where
@@ -80,4 +83,47 @@ pub struct ModManifest {
     pub version: semver::Version,
     pub description: String,
     pub dependencies: Vec<VersionIdent>,
+}
+
+#[derive(Clone)]
+pub struct SearchablePackage(pub PackageV1);
+
+impl Deref for SearchablePackage {
+    type Target = PackageV1;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl SearchablePackage {
+    pub fn is_server_mod(&self) -> bool {
+        self.0.categories.contains("Server-side")
+    }
+}
+
+impl std::fmt::Display for SearchablePackage {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut name = self.0.name.clone();
+        name.truncate(16);
+        write!(
+            f,
+            "|{}|{}|{}|",
+            name.pad_to_width_with_alignment(18, pad::Alignment::Middle),
+            self.0
+                .total_downloads()
+                .to_string()
+                .pad_to_width_with_alignment(17, pad::Alignment::Middle),
+            self.0
+                .rating_score
+                .to_string()
+                .pad_to_width_with_alignment(14, pad::Alignment::Middle)
+        )
+    }
+}
+
+impl From<PackageV1> for SearchablePackage {
+    fn from(value: PackageV1) -> Self {
+        Self(value)
+    }
 }

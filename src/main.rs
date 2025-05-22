@@ -3,6 +3,7 @@ mod main_menu;
 pub mod prelude;
 
 use clap::Parser;
+use prelude::*;
 use std::path::PathBuf;
 
 /// Global state for this program's session
@@ -10,7 +11,7 @@ pub struct ProgramState {
     /// The program args this session was started with
     args: ProgramArgs,
     /// cached packages from Thunderstore
-    packages: Vec<main_menu::SearchablePackage>,
+    packages: Vec<SearchablePackage>,
 }
 
 #[derive(Parser)]

@@ -1,7 +1,7 @@
 mod installed_mods;
 mod mod_search;
+
 use crate::prelude::*;
-pub use mod_search::SearchablePackage;
 
 enum_select! {
     /// Menu menu selections
