@@ -14,12 +14,15 @@ pub struct ProgramState {
     packages: Vec<SearchablePackage>,
 }
 
+/// A command line utility to help manager server mods using the Thunderstore api. Aids in the
+/// installation, updating, and overall management of mods on a server.
 #[derive(Parser)]
-#[command(version)]
+#[command(version, about)]
 struct ProgramArgs {
-    // The directory where your mods should be deployed
+    /// The directory where your mods should be deployed
     #[arg(short = 'd', long, env)]
     mods_dir: PathBuf,
+    /// The game to be managed. This should match exactly with what is in the Thunderstore website
     #[arg(short = 'g', long, env)]
     managed_game: String,
 }

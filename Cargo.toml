@@ -2,6 +2,9 @@
 name = "thundermods"
 version = "0.1.0"
 edition = "2024"
+authors = ["Devin Bidwell <dbidwell@biddydev.com>"]
+license = "APACHE-2.0"
+repository = "https://github.com/dbidwell94/thundermods"
 
 [dependencies]
 clap = { version = "^4.5", features = ["derive", "env"] }
