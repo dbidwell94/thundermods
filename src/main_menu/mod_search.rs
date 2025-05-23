@@ -11,15 +11,17 @@ pub async fn view(
         clearscreen::clear()?;
         println!("Please wait, fetching downloadable packages from Thunderstore...");
         state.refresh_packages(api).await?;
-        state.packages.sort_by_key(|item| item.total_downloads());
     }
 
     loop {
         clearscreen::clear()?;
         let (_, height) = term_size::dimensions().unwrap_or((60, 60));
 
+        let mut to_display = state.packages.values().cloned().collect::<Vec<_>>();
+        to_display.sort_by_key(|item| std::cmp::Reverse(item.total_downloads()));
+
         let Some(selected_option) =
-            inquire::Select::new("Online mods. Press <esc> to cancel", state.packages.clone())
+            inquire::Select::new("Online mods. Press <esc> to cancel", to_display)
                 .with_page_size(height - 2)
                 .with_help_message(" |       Name       |    Downloads    |    Rating    | ")
                 .prompt_skippable()?

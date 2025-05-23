@@ -1,7 +1,8 @@
+pub use crate::main_menu::Requirements;
 use directories::ProjectDirs;
 use inquire::Select;
 use pad::PadStr;
-use serde::Deserialize;
+use serde::{Deserialize, de::Visitor};
 use std::{ops::Deref, path::PathBuf, sync::LazyLock};
 use thunderstore::{VersionIdent, models::PackageV1};
 
@@ -11,6 +12,76 @@ pub static CACHE_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
         .cache_dir()
         .to_path_buf()
 });
+pub static CONFIG_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
+    ProjectDirs::from("com", "biddydev", env!("CARGO_BIN_NAME"))
+        .unwrap()
+        .config_dir()
+        .to_path_buf()
+});
+
+/// Represents a namespaced package as used as a key for the requirements.json file.
+///
+/// ## Example
+/// "MyNamespace/PackageName"
+#[derive(Hash, PartialEq, Eq, Debug)]
+pub struct NamespacedPackage(String, String);
+
+impl NamespacedPackage {
+    /// Gets the namespace of this package
+    fn namespace(&self) -> &str {
+        &self.0
+    }
+    /// Gets the name of this package
+    fn name(&self) -> &str {
+        &self.1
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for NamespacedPackage {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct NamespacedPackageVisitor;
+
+        impl Visitor<'_> for NamespacedPackageVisitor {
+            type Value = NamespacedPackage;
+            fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+                formatter.write_str("A string seperated by a forward slash. Ex: One/Two")
+            }
+            fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+            where
+                E: serde::de::Error,
+            {
+                let mut splits = v.split('/');
+                let namespace = splits
+                    .next()
+                    .ok_or(E::custom("Missing package namespace"))?;
+                let name = splits.next().ok_or(E::custom("Missing package name"))?;
+
+                if splits.next().is_some() {
+                    return Err(E::custom("Package namespace is malformed"));
+                }
+
+                Ok(NamespacedPackage(namespace.to_owned(), name.to_owned()))
+            }
+        }
+
+        deserializer.deserialize_string(NamespacedPackageVisitor)
+    }
+}
+
+impl From<&PackageV1> for NamespacedPackage {
+    fn from(value: &PackageV1) -> Self {
+        Self(value.namespace.clone(), value.name.clone())
+    }
+}
+
+impl From<&SearchablePackage> for NamespacedPackage {
+    fn from(value: &SearchablePackage) -> Self {
+        NamespacedPackage(value.namespace.clone(), value.name.clone())
+    }
+}
 
 pub trait EnumSelectable
 where
@@ -81,8 +152,6 @@ macro_rules! enum_select {
     };
 }
 
-pub(crate) use enum_select;
-
 #[derive(Deserialize, Debug)]
 pub struct ModManifest {
     pub name: String,
@@ -134,3 +203,5 @@ impl From<PackageV1> for SearchablePackage {
         Self(value)
     }
 }
+
+pub(crate) use enum_select;

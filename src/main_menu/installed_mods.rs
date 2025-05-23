@@ -1,3 +1,5 @@
+pub mod packages;
+
 use crate::prelude::*;
 use std::{collections::VecDeque, path::PathBuf};
 
@@ -46,10 +48,6 @@ pub async fn view(
             }
         }
     }
-
-    println!("{installed_mods:?}");
-
-    inquire::prompt_confirmation("Continue?")?;
 
     Ok(())
 }
