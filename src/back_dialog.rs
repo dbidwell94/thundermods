@@ -4,8 +4,8 @@ enum_select! {
     /// The options for the back menu
     #[derive(Clone)]
     enum BackOptions {
-        PreviousPage = "Previous Page",
         Continue = "Continue",
+        PreviousPage = "Previous Page",
     }
 }
 

@@ -23,10 +23,15 @@ pub static CONFIG_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
 ///
 /// ## Example
 /// "MyNamespace/PackageName"
-#[derive(Hash, PartialEq, Eq, Debug)]
+#[derive(Hash, PartialEq, Eq, Debug, Clone)]
 pub struct NamespacedPackage(String, String);
 
 impl NamespacedPackage {
+    /// For use with `clap` to parse command line arguments
+    pub fn value_parser(value: &str) -> Result<Self, String> {
+        todo!()
+    }
+
     pub fn new(namespace: &str, name: &str) -> Self {
         Self(namespace.to_owned(), name.to_owned())
     }
