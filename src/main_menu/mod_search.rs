@@ -10,18 +10,8 @@ pub async fn view(
     if state.packages.is_empty() {
         clearscreen::clear()?;
         println!("Please wait, fetching downloadable packages from Thunderstore...");
-        let mut packages: Vec<SearchablePackage> = api
-            .list_packages_v1(&state.args.managed_game)
-            .await?
-            .into_iter()
-            .filter(|f| !f.is_deprecated && !f.is_modpack())
-            .map(Into::into)
-            .filter(|searchable: &SearchablePackage| searchable.is_server_mod())
-            .collect();
-
-        packages.sort_by_key(|item| item.total_downloads());
-
-        state.packages = packages;
+        state.refresh_packages(api).await?;
+        state.packages.sort_by_key(|item| item.total_downloads());
     }
 
     loop {

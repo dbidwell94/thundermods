@@ -92,8 +92,8 @@ pub struct ModManifest {
     pub dependencies: Vec<VersionIdent>,
 }
 
-#[derive(Clone)]
-pub struct SearchablePackage(pub PackageV1);
+#[derive(Clone, bincode::Encode, bincode::Decode)]
+pub struct SearchablePackage(#[bincode(with_serde)] pub PackageV1);
 
 impl Deref for SearchablePackage {
     type Target = PackageV1;
