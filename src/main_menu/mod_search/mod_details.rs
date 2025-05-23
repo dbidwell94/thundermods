@@ -12,9 +12,10 @@ enum_select! {
 pub fn view(to_view: &super::SearchablePackage) -> anyhow::Result<ModDetailsResult> {
     clearscreen::clear()?;
 
-    let latest_version = to_view
-        .0
-        .versions
+    let mut versions = to_view.versions.clone();
+    versions.sort_by_key(|version| version.ident.parsed_version());
+
+    let latest_version = versions
         .last()
         .ok_or(anyhow::anyhow!("This mod has no versions"))?;
 
