@@ -1,6 +1,8 @@
 mod installed_mods;
 mod mod_search;
 
+pub use installed_mods::packages::Requirements;
+
 use crate::prelude::*;
 
 enum_select! {

@@ -5,17 +5,19 @@ pub mod prelude;
 use chrono::{DateTime, Local};
 use clap::Parser;
 use prelude::*;
+use std::collections::HashMap;
 use std::fs::File;
-use std::io::{BufReader, BufWriter, Write};
+use std::io::{BufReader, BufWriter};
 use std::path::{Path, PathBuf};
-use thunderstore::models::PackageV1;
 
 /// Global state for this program's session
 pub struct ProgramState {
     /// The program args this session was started with
     args: ProgramArgs,
     /// cached packages from Thunderstore
-    packages: Vec<SearchablePackage>,
+    packages: HashMap<NamespacedPackage, SearchablePackage>,
+    /// The mod requirements for this session
+    requirements: Requirements,
     /// The last time the package cache was updated
     last_updated: Option<DateTime<Local>>,
 }
@@ -51,7 +53,7 @@ impl ProgramState {
         let timestamp = path
             .file_name()?
             .to_str()?
-            .strip_suffix(".json")?
+            .strip_suffix(".bin")?
             .split('_')
             .collect::<Vec<_>>()
             .last()?
@@ -69,16 +71,32 @@ impl ProgramState {
             .and_then(|path| File::open(path).ok())
             .map(BufReader::new)
             .and_then(|reader| {
-                serde_json::from_reader::<BufReader<File>, Vec<PackageV1>>(reader).ok()
+                bincode::decode_from_reader::<Vec<SearchablePackage>, _, _>(
+                    reader,
+                    bincode::config::standard(),
+                )
+                .ok()
             })
-            .unwrap_or_default()
-            .into_iter()
-            .map(Into::into)
-            .collect();
+            .map(|pkgs| {
+                let mut map = HashMap::new();
+
+                for pkg in pkgs {
+                    map.insert(NamespacedPackage::from(&pkg), pkg);
+                }
+                map
+            })
+            .unwrap_or_default();
+
+        let requirements: Option<Requirements> =
+            File::open(CONFIG_DIR.join(format!("requirements_{}.json", args.managed_game)))
+                .ok()
+                .map(BufReader::new)
+                .and_then(|reader| serde_json::from_reader(reader).ok());
 
         Self {
             args,
             packages,
+            requirements: requirements.unwrap_or_default(),
             last_updated: cache_file_name.and_then(|path| Self::get_last_updated_from_path(&path)),
         }
     }
@@ -90,33 +108,46 @@ impl ProgramState {
                 "Unable to save cache with non-existant last_updated field"
             ));
         };
-        let packages = self
-            .packages
-            .clone()
-            .into_iter()
-            .map(|item| item.0)
-            .collect::<Vec<_>>();
 
         if !std::fs::exists(CACHE_DIR.as_path())? {
             std::fs::create_dir_all(CACHE_DIR.as_path())?;
         }
 
+        if let Some(previous_cached_file) = Self::cache_path(&self.args.managed_game) {
+            std::fs::remove_file(&previous_cached_file)?;
+        }
+
         let cache_path = CACHE_DIR.join(format!(
-            "{}_{}.json",
+            "{}_{}.bin",
             self.args.managed_game,
             last_updated.timestamp()
         ));
 
         let mut writer = BufWriter::new(File::create(cache_path)?);
-        writer.write_all(&serde_json::to_vec(&packages)?)?;
+
+        bincode::encode_into_std_write(
+            self.packages.values().cloned().collect::<Vec<_>>(),
+            &mut writer,
+            bincode::config::standard(),
+        )?;
 
         Ok(())
     }
 
     async fn refresh_packages(&mut self, api: &thunderstore::Client) -> anyhow::Result<()> {
-        let packages = api.list_packages_v1(&self.args.managed_game).await?;
+        let packages: Vec<SearchablePackage> = api
+            .list_packages_v1(&self.args.managed_game)
+            .await?
+            .into_iter()
+            .map(Into::into)
+            .collect();
 
-        self.packages = packages.into_iter().map(Into::into).collect();
+        let mut map = HashMap::new();
+        for pkg in packages {
+            map.insert(NamespacedPackage::from(&pkg), pkg);
+        }
+
+        self.packages = map;
         let last_updated = Local::now();
 
         self.last_updated = Some(last_updated);
