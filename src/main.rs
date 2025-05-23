@@ -126,7 +126,7 @@ impl ProgramState {
         let mut writer = BufWriter::new(File::create(cache_path)?);
 
         bincode::encode_into_std_write(
-            &self.packages.values().cloned().collect::<Vec<_>>(),
+            self.packages.values().cloned().collect::<Vec<_>>(),
             &mut writer,
             bincode::config::standard(),
         )?;

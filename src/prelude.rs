@@ -27,12 +27,15 @@ pub static CONFIG_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
 pub struct NamespacedPackage(String, String);
 
 impl NamespacedPackage {
+    pub fn new(namespace: &str, name: &str) -> Self {
+        Self(namespace.to_owned(), name.to_owned())
+    }
     /// Gets the namespace of this package
-    fn namespace(&self) -> &str {
+    pub fn namespace(&self) -> &str {
         &self.0
     }
     /// Gets the name of this package
-    fn name(&self) -> &str {
+    pub fn name(&self) -> &str {
         &self.1
     }
 }
