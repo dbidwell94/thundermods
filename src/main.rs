@@ -4,6 +4,7 @@ mod main_menu;
 pub mod prelude;
 mod uninstall;
 mod update;
+pub mod utils;
 
 use anyhow::anyhow;
 use chrono::{DateTime, Local};
@@ -55,6 +56,10 @@ impl ProgramState {
         None
     }
 
+    fn config_path(managed_game: &str) -> PathBuf {
+        CONFIG_DIR.join(format!("requirements_{}.json", managed_game))
+    }
+
     fn get_last_updated_from_path(path: &Path) -> Option<DateTime<Local>> {
         let timestamp = path
             .file_name()?
@@ -93,11 +98,10 @@ impl ProgramState {
             })
             .unwrap_or_default();
 
-        let requirements: Option<Requirements> =
-            File::open(CONFIG_DIR.join(format!("requirements_{}.json", args.managed_game)))
-                .ok()
-                .map(BufReader::new)
-                .and_then(|reader| serde_json::from_reader(reader).ok());
+        let requirements: Option<Requirements> = File::open(Self::config_path(&args.managed_game))
+            .ok()
+            .map(BufReader::new)
+            .and_then(|reader| serde_json::from_reader(reader).ok());
 
         Self {
             mods_dir: args.mods_dir,
@@ -233,7 +237,10 @@ async fn main() -> anyhow::Result<()> {
                 update_cache,
                 dry_run,
                 mod_name,
-            } => {}
+            } => {
+                let program_state = ProgramState::from_cache(args);
+                update::perform_update(program_state, mod_name, update_cache, dry_run).await?;
+            }
             Clean => {}
             Uninstall { mod_name } => {}
             Files { file_name } => {
@@ -250,8 +257,7 @@ async fn main() -> anyhow::Result<()> {
                         }
                     }
                     Config => {
-                        let config_path =
-                            CONFIG_DIR.join(format!("requirements_{}.json", args.managed_game));
+                        let config_path = ProgramState::config_path(&args.managed_game);
                         println!("{}", config_path.display());
                     }
                 }
